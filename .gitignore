@@ -1,13 +1,22 @@
 # Python
 venv/
 __pycache__/
-*.pyc
+*.py[cod]
 
 # Django
 db.sqlite3
+backend/db.sqlite3
 
-# Environment
+# Media Files
+media/
+backend/media/
+
+# Environment Variables
 .env
 
 # VS Code
 .vscode/
+
+# OS Files
+.DS_Store
+Thumbs.db
