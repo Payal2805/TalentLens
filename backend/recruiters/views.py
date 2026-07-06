@@ -4,6 +4,7 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 
 from .models import RecruiterProfile
+from jobs.models import Job, Application
 from .serializers import RecruiterProfileSerializer
 
 from accounts.permissions import IsRecruiter
@@ -82,3 +83,42 @@ class RecruiterProfileView(APIView):
             status=status.HTTP_400_BAD_REQUEST
         )
         
+class RecruiterDashboardStatsView(APIView):
+
+    permission_classes = [IsAuthenticated, IsRecruiter]
+
+    def get(self, request):
+
+        try:
+            recruiter = RecruiterProfile.objects.get(user=request.user)
+
+        except RecruiterProfile.DoesNotExist:
+            return Response(
+                {
+                    "message": "Recruiter profile not found."
+                },
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        jobs = Job.objects.filter(recruiter=recruiter)
+
+        applications = Application.objects.filter(
+            job__recruiter=recruiter
+        )
+
+        data = {
+            "username": request.user.username,
+            "company_name": recruiter.company_name,
+            "total_jobs": jobs.count(),
+            "active_jobs": jobs.filter(is_active=True).count(),
+            "inactive_jobs": jobs.filter(is_active=False).count(),
+            "total_applications": applications.count(),
+            "applied": applications.filter(status="APPLIED").count(),
+            "under_review": applications.filter(status="UNDER_REVIEW").count(),
+            "shortlisted": applications.filter(status="SHORTLISTED").count(),
+            "hired": applications.filter(status="HIRED").count(),
+            "rejected": applications.filter(status="REJECTED").count(),
+        }
+
+        return Response(data, status=status.HTTP_200_OK)
+    

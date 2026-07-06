@@ -4,6 +4,7 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 
 from .models import CandidateProfile, Resume
+from jobs.models import Application
 from .serializers import CandidateProfileSerializer, ResumeSerializer
 
 from accounts.permissions import IsCandidate
@@ -161,4 +162,36 @@ class ResumeDeleteView(APIView):
             {"message": "Resume deleted successfully."},
             status=status.HTTP_200_OK
         )
-        
+
+class CandidateDashboardStatsView(APIView):
+
+    permission_classes = [IsAuthenticated, IsCandidate]
+
+    def get(self, request):
+
+        try:
+            candidate = CandidateProfile.objects.get(user=request.user)
+
+        except CandidateProfile.DoesNotExist:
+            return Response(
+                {
+                    "message": "Candidate profile not found."
+                },
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        applications = Application.objects.filter(candidate=candidate)
+
+        data = {
+            "username": request.user.username,
+            "total_resumes": Resume.objects.filter(candidate=candidate).count(),
+            "total_applications": applications.count(),
+            "applied": applications.filter(status="APPLIED").count(),
+            "under_review": applications.filter(status="UNDER_REVIEW").count(),
+            "shortlisted": applications.filter(status="SHORTLISTED").count(),
+            "hired": applications.filter(status="HIRED").count(),
+            "rejected": applications.filter(status="REJECTED").count(),
+        }
+
+        return Response(data, status=status.HTTP_200_OK)   
+         
