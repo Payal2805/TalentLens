@@ -22,10 +22,12 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    
     path('api/accounts/', include('accounts.urls')),
     path("api/candidates/", include("candidates.urls")),
     path("api/recruiters/", include("recruiters.urls")),
     path("api/jobs/", include("jobs.urls")),
+    path("api/ai/", include("ai_engine.urls")),
 ]
 
 if settings.DEBUG:
