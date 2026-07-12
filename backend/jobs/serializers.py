@@ -41,6 +41,7 @@ class ApplicationSerializer(serializers.ModelSerializer):
 
         read_only_fields = [
             "id",
+            "job",          # ✅ Add this
             "status",
             "applied_at",
         ]

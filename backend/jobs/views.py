@@ -2,9 +2,12 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
+from django.db.models import Q
 
+from .pagination import JobPagination
 from .models import Job, Application
 from .serializers import JobSerializer, ApplicationSerializer, RecruiterApplicationSerializer, ApplicationStatusSerializer
+from notifications.services import create_notification
 from django.utils import timezone
 
 from candidates.models import CandidateProfile, Resume
@@ -60,6 +63,7 @@ class JobView(APIView):
     # -------------------------
     def get(self, request, pk=None):
 
+        # Get Single Job
         if pk:
 
             try:
@@ -67,22 +71,88 @@ class JobView(APIView):
 
             except Job.DoesNotExist:
                 return Response(
-                    {"message": "Job not found."},
+                    {
+                        "message": "Job not found."
+                    },
                     status=status.HTTP_404_NOT_FOUND
                 )
 
             serializer = JobSerializer(job)
 
-            return Response(serializer.data)
+            return Response(
+                serializer.data,
+                status=status.HTTP_200_OK
+            )
 
-        jobs = Job.objects.filter(is_active=True)
+        # Get Active Jobs
+        jobs = Job.objects.filter(
+            is_active=True
+        )
+
+        # -------------------------
+        # Search
+        # -------------------------
+        search = request.query_params.get("search")
+
+        if search:
+            jobs = jobs.filter(
+                Q(title__icontains=search) |
+                Q(description__icontains=search) |
+                Q(skills_required__icontains=search)
+            )
+
+        # -------------------------
+        # Location Filter
+        # -------------------------
+        location = request.query_params.get("location")
+
+        if location:
+            jobs = jobs.filter(
+                location__icontains=location
+            )
+
+        # -------------------------
+        # Job Type Filter
+        # -------------------------
+        job_type = request.query_params.get("job_type")
+
+        if job_type:
+            jobs = jobs.filter(
+                job_type=job_type
+            )
+
+        # -------------------------
+        # Experience Filter
+        # -------------------------
+        experience = request.query_params.get("experience")
+
+        if experience:
+            jobs = jobs.filter(
+                experience=experience
+            )
+
+        # Latest Jobs First
+        jobs = jobs.order_by("-created_at")
+
+        # -------------------------
+        # Pagination
+        # -------------------------
+        paginator = JobPagination()
+
+        paginated_jobs = paginator.paginate_queryset(
+            jobs,
+            request
+        )
 
         serializer = JobSerializer(
-            jobs,
+            paginated_jobs,
             many=True
         )
 
-        return Response(serializer.data)
+        return paginator.get_paginated_response(
+            serializer.data
+        )
+
 
     # -------------------------
     # Update Job
@@ -249,10 +319,18 @@ class ApplyJobView(APIView):
         serializer = ApplicationSerializer(data=request.data)
 
         if serializer.is_valid():
-            serializer.save(
+
+            application = serializer.save(
                 candidate=candidate,
                 job=job,
                 resume=resume
+            )
+
+            create_notification(
+                recipient=job.recruiter.user,
+                title="New Job Application",
+                message=f"{candidate.user.username} applied for '{job.title}'.",
+                notification_type="APPLICATION"
             )
 
             return Response(
@@ -397,6 +475,40 @@ class UpdateApplicationStatusView(APIView):
 
         if serializer.is_valid():
             serializer.save()
+
+            # -------------------------
+            # Create Candidate Notification
+            # -------------------------
+
+            status_messages = {
+                "UNDER_REVIEW": (
+                    "Application Under Review",
+                    f"Your application for '{application.job.title}' is now under review."
+                ),
+                "SHORTLISTED": (
+                    "Application Shortlisted",
+                    f"Congratulations! You have been shortlisted for '{application.job.title}'."
+                ),
+                "REJECTED": (
+                    "Application Rejected",
+                    f"Your application for '{application.job.title}' has been rejected."
+                ),
+                "HIRED": (
+                    "Congratulations!",
+                    f"Congratulations! You have been selected for '{application.job.title}'."
+                ),
+            }
+
+            if application.status in status_messages:
+
+                title, message = status_messages[application.status]
+
+                create_notification(
+                    recipient=application.candidate.user,
+                    title=title,
+                    message=message,
+                    notification_type=application.status
+                )
 
             return Response(
                 {

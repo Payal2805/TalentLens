@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'jobs',
     'resumes',
     'ai_engine',
+    "notifications",
 ]
 
 MIDDLEWARE = [
