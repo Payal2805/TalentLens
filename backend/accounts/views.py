@@ -9,8 +9,15 @@ from accounts.models import User
 from candidates.models import CandidateProfile, Resume
 from recruiters.models import RecruiterProfile
 from jobs.models import Job, Application
-from .serializers import RegisterSerializer, LoginSerializer
+from .serializers import RegisterSerializer, LoginSerializer, ForgotPasswordSerializer, ResetPasswordSerializer
 
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode
+from django.utils.http import urlsafe_base64_decode
+from django.utils.encoding import force_str
+from django.core.mail import send_mail
+from django.conf import settings
 
 class RegisterView(APIView):
 
@@ -275,3 +282,105 @@ class AdminDashboardView(APIView):
             status=status.HTTP_200_OK
         )
         
+class ForgotPasswordView(APIView):
+
+    permission_classes = []
+
+    def post(self, request):
+
+        serializer = ForgotPasswordSerializer(data=request.data)
+
+        if not serializer.is_valid():
+            return Response(
+                serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        email = serializer.validated_data["email"] # type: ignore
+
+        try:
+            user = User.objects.get(email=email)
+
+        except User.DoesNotExist:
+            return Response(
+                {
+                    "message": "No account found with this email."
+                },
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+
+        token = default_token_generator.make_token(user)
+
+        reset_link = (
+            f"{settings.FRONTEND_URL}/reset-password/{uid}/{token}/"
+        )
+
+        send_mail(
+            subject="TalentLens Password Reset",
+            message=(
+                f"Hello {user.username},\n\n"
+                f"Click the link below to reset your password:\n\n"
+                f"{reset_link}\n\n"
+                f"If you did not request this, you can ignore this email."
+            ),
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[user.email],
+            fail_silently=False,
+        )
+
+        return Response(
+            {
+                "message": "Password reset link has been sent to your email."
+            },
+            status=status.HTTP_200_OK
+        )
+        
+class ResetPasswordView(APIView):
+
+    permission_classes = []
+
+    def post(self, request):
+
+        serializer = ResetPasswordSerializer(data=request.data)
+
+        if not serializer.is_valid():
+            return Response(
+                serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        uid = serializer.validated_data["uid"]
+        token = serializer.validated_data["token"]
+        password = serializer.validated_data["password"]
+
+        try:
+            user_id = force_str(urlsafe_base64_decode(uid))
+            user = User.objects.get(pk=user_id)
+
+        except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+            return Response(
+                {
+                    "message": "Invalid reset link."
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if not default_token_generator.check_token(user, token):
+            return Response(
+                {
+                    "message": "Invalid or expired token."
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        user.set_password(password)
+        user.save()
+
+        return Response(
+            {
+                "message": "Password has been reset successfully."
+            },
+            status=status.HTTP_200_OK
+        )        
