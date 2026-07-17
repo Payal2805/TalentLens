@@ -351,9 +351,9 @@ class ResetPasswordView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        uid = serializer.validated_data["uid"]
-        token = serializer.validated_data["token"]
-        password = serializer.validated_data["password"]
+        uid = serializer.validated_data["uid"] # type: ignore
+        token = serializer.validated_data["token"] # type: ignore
+        password = serializer.validated_data["password"] # type: ignore
 
         try:
             user_id = force_str(urlsafe_base64_decode(uid))
