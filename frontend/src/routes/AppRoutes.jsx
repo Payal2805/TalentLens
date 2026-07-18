@@ -8,6 +8,12 @@ import ResetPassword from "../pages/auth/ResetPassword";
 import ProtectedRoute from "./ProtectedRoute";
 
 import CandidateDashboard from "../pages/candidate/CandidateDashboard";
+import ResumeUpload from "../pages/candidate/ResumeUpload";
+import ResumeList from "../pages/candidate/ResumeList";
+import JobList from "../pages/candidate/JobList";
+import MyApplications from "../pages/candidate/MyApplications";
+import Notifications from "../pages/candidate/Notifications";
+
 import RecruiterDashboard from "../pages/recruiter/RecruiterDashboard";
 import AdminDashboard from "../pages/admin/AdminDashboard";
 
@@ -64,6 +70,51 @@ export default function AppRoutes() {
         element={
           <ProtectedRoute allowedRoles={["ADMIN"]}>
             <AdminDashboard />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/candidate/resume-upload"
+        element={
+          <ProtectedRoute allowedRoles={["CANDIDATE"]}>
+            <ResumeUpload />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/candidate/resume-list"
+        element={
+          <ProtectedRoute allowedRoles={["CANDIDATE"]}>
+            <ResumeList />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/candidate/jobs"
+        element={
+          <ProtectedRoute allowedRoles={["CANDIDATE"]}>
+            <JobList />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/candidate/my-applications"
+        element={
+          <ProtectedRoute allowedRoles={["CANDIDATE"]}>
+            <MyApplications />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/candidate/notifications"
+        element={
+          <ProtectedRoute allowedRoles={["CANDIDATE"]}>
+            <Notifications />
           </ProtectedRoute>
         }
       />
