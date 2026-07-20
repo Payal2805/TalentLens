@@ -13,6 +13,7 @@ import ResumeList from "../pages/candidate/ResumeList";
 import JobList from "../pages/candidate/JobList";
 import MyApplications from "../pages/candidate/MyApplications";
 import Notifications from "../pages/candidate/Notifications";
+import CandidateProfile from "../pages/candidate/CandidateProfile";
 
 import RecruiterDashboard from "../pages/recruiter/RecruiterDashboard";
 import AdminDashboard from "../pages/admin/AdminDashboard";
@@ -115,6 +116,15 @@ export default function AppRoutes() {
         element={
           <ProtectedRoute allowedRoles={["CANDIDATE"]}>
             <Notifications />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/candidate/profile"
+        element={
+          <ProtectedRoute allowedRoles={["CANDIDATE"]}>
+            <CandidateProfile />
           </ProtectedRoute>
         }
       />
