@@ -164,6 +164,45 @@ class ResumeDeleteView(APIView):
             {"message": "Resume deleted successfully."},
             status=status.HTTP_200_OK
         )
+        
+class SetDefaultResumeView(APIView):
+
+    permission_classes = [IsAuthenticated, IsCandidate]
+
+    def patch(self, request, pk):
+
+        try:
+            candidate = CandidateProfile.objects.get(user=request.user)
+
+        except CandidateProfile.DoesNotExist:
+            return Response(
+                {"message": "Candidate profile not found."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        try:
+            resume = Resume.objects.get(
+                id=pk,
+                candidate=candidate
+            )
+
+        except Resume.DoesNotExist:
+            return Response(
+                {"message": "Resume not found."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        Resume.objects.filter(
+            candidate=candidate
+        ).update(is_default=False)
+
+        resume.is_default = True
+        resume.save()
+
+        return Response(
+            {"message": "Default resume updated successfully."},
+            status=status.HTTP_200_OK
+        )
 
 class CandidateDashboardStatsView(APIView):
 

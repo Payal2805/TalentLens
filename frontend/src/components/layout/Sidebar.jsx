@@ -1,7 +1,6 @@
 import { NavLink } from "react-router-dom";
 import {
   LayoutDashboard,
-  Upload,
   FileText,
   Briefcase,
   ClipboardList,
@@ -15,13 +14,8 @@ const menuItems = [
     icon: LayoutDashboard,
   },
   {
-    name: "Resume Upload",
-    path: "/candidate/resume-upload",
-    icon: Upload,
-  },
-  {
-    name: "Resume List",
-    path: "/candidate/resume-list",
+    name: "My Resume",
+    path: "/candidate/resume",
     icon: FileText,
   },
   {

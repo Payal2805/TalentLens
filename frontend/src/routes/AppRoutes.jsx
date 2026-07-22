@@ -8,8 +8,7 @@ import ResetPassword from "../pages/auth/ResetPassword";
 import ProtectedRoute from "./ProtectedRoute";
 
 import CandidateDashboard from "../pages/candidate/CandidateDashboard";
-import ResumeUpload from "../pages/candidate/ResumeUpload";
-import ResumeList from "../pages/candidate/ResumeList";
+import Resume from "../pages/candidate/Resume";
 import JobList from "../pages/candidate/JobList";
 import MyApplications from "../pages/candidate/MyApplications";
 import Notifications from "../pages/candidate/Notifications";
@@ -76,19 +75,10 @@ export default function AppRoutes() {
       />
 
       <Route
-        path="/candidate/resume-upload"
+        path="/candidate/resume"
         element={
           <ProtectedRoute allowedRoles={["CANDIDATE"]}>
-            <ResumeUpload />
-          </ProtectedRoute>
-        }
-      />
-
-      <Route
-        path="/candidate/resume-list"
-        element={
-          <ProtectedRoute allowedRoles={["CANDIDATE"]}>
-            <ResumeList />
+            <Resume />
           </ProtectedRoute>
         }
       />
