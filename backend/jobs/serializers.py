@@ -58,6 +58,16 @@ class RecruiterApplicationSerializer(serializers.ModelSerializer):
         read_only=True
     )
 
+    resume_title = serializers.CharField(
+        source="resume.resume_title",
+        read_only=True
+    )
+
+    resume_file = serializers.FileField(
+        source="resume.resume_file",
+        read_only=True
+    )
+
     class Meta:
         model = Application
         fields = [
@@ -65,6 +75,8 @@ class RecruiterApplicationSerializer(serializers.ModelSerializer):
             "candidate_name",
             "candidate_email",
             "resume",
+            "resume_title",
+            "resume_file",
             "status",
             "applied_at",
         ]

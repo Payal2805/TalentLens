@@ -523,3 +523,29 @@ class UpdateApplicationStatusView(APIView):
             status=status.HTTP_400_BAD_REQUEST
         )
         
+class RecruiterJobsView(APIView):
+
+    permission_classes = [IsAuthenticated, IsRecruiter]
+
+    def get(self, request):
+
+        try:
+            recruiter = RecruiterProfile.objects.get(user=request.user)
+
+        except RecruiterProfile.DoesNotExist:
+            return Response(
+                {"message": "Recruiter profile not found."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        jobs = Job.objects.filter(
+            recruiter=recruiter
+        ).order_by("-created_at")
+
+        serializer = JobSerializer(
+            jobs,
+            many=True
+        )
+
+        return Response(serializer.data)
+    

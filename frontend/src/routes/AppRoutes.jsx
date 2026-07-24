@@ -15,6 +15,12 @@ import Notifications from "../pages/candidate/Notifications";
 import CandidateProfile from "../pages/candidate/CandidateProfile";
 
 import RecruiterDashboard from "../pages/recruiter/RecruiterDashboard";
+import CreateJob from "../pages/recruiter/CreateJob";
+import MyJobs from "../pages/recruiter/MyJobs";
+import EditJob from "../pages/recruiter/EditJob";
+import Applicants from "../pages/recruiter/Applicants";
+import RecruiterNotifications from "../pages/recruiter/RecruiterNotifications";
+
 import AdminDashboard from "../pages/admin/AdminDashboard";
 
 function Home() {
@@ -115,6 +121,51 @@ export default function AppRoutes() {
         element={
           <ProtectedRoute allowedRoles={["CANDIDATE"]}>
             <CandidateProfile />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/recruiter/create-job"
+        element={
+          <ProtectedRoute allowedRoles={["RECRUITER"]}>
+            <CreateJob />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/recruiter/my-jobs"
+        element={
+          <ProtectedRoute allowedRoles={["RECRUITER"]}>
+            <MyJobs />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/recruiter/edit-job/:id"
+        element={
+          <ProtectedRoute allowedRoles={["RECRUITER"]}>
+            <EditJob />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/recruiter/jobs/:jobId/applicants"
+        element={
+          <ProtectedRoute allowedRoles={["RECRUITER"]}>
+            <Applicants />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/recruiter/notifications"
+        element={
+          <ProtectedRoute allowedRoles={["RECRUITER"]}>
+            <RecruiterNotifications />
           </ProtectedRoute>
         }
       />
