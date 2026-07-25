@@ -19,6 +19,7 @@ import CreateJob from "../pages/recruiter/CreateJob";
 import MyJobs from "../pages/recruiter/MyJobs";
 import EditJob from "../pages/recruiter/EditJob";
 import Applicants from "../pages/recruiter/Applicants";
+import CandidateDetails from "../pages/recruiter/CandidateDetails";
 import RecruiterNotifications from "../pages/recruiter/RecruiterNotifications";
 import RecruiterProfile from "../pages/recruiter/RecruiterProfile";
 
@@ -158,6 +159,15 @@ export default function AppRoutes() {
         element={
           <ProtectedRoute allowedRoles={["RECRUITER"]}>
             <Applicants />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/recruiter/application/:applicationId"
+        element={
+          <ProtectedRoute allowedRoles={["RECRUITER"]}>
+            <CandidateDetails />
           </ProtectedRoute>
         }
       />

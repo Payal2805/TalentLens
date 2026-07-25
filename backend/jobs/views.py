@@ -549,3 +549,60 @@ class RecruiterJobsView(APIView):
 
         return Response(serializer.data)
     
+class RecruiterApplicantDetailView(APIView):
+
+    permission_classes = [IsAuthenticated, IsRecruiter]
+
+    def get(self, request, application_id):
+
+        try:
+            recruiter = RecruiterProfile.objects.get(user=request.user)
+        except RecruiterProfile.DoesNotExist:
+            return Response(
+                {"message": "Recruiter profile not found."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        try:
+            application = Application.objects.select_related(
+                "candidate__user",
+                "resume",
+                "job"
+            ).get(
+                id=application_id,
+                job__recruiter=recruiter
+            )
+        except Application.DoesNotExist:
+            return Response(
+                {"message": "Application not found."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        candidate = application.candidate
+
+        return Response({
+            "application_id": application.id, # type: ignore
+            "status": application.status,
+            "applied_at": application.applied_at,
+
+            "candidate": {
+                "id": candidate.id, # type: ignore
+                "name": candidate.user.get_full_name() or candidate.user.username,
+                "email": candidate.user.email,
+                "phone": candidate.phone_number,
+                "address": candidate.address,
+                "skills": candidate.skills,
+                "education": candidate.highest_education,
+                "experience": candidate.experience_years,
+                "linkedin": candidate.linkedin_url,
+                "github": candidate.github_url,
+                "portfolio": candidate.portfolio_url,
+            },
+
+            "resume": {
+                "id": application.resume.id, # type: ignore
+                "title": application.resume.resume_title,
+                "file": application.resume.resume_file.url,
+            }
+        })
+        

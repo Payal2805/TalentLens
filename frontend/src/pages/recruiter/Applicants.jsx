@@ -3,18 +3,26 @@ import RecruiterNavbar from "../../components/layout/RecruiterNavbar";
 import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import api from "../../services/api";
+import { useNavigate } from "react-router-dom";
 
 function Applicants() {
     const { jobId } = useParams();
 
     const [loading, setLoading] = useState(true);
+    const [search, setSearch] = useState("");
+    const [statusFilter, setStatusFilter] = useState("");
+    const [currentPage, setCurrentPage] = useState(1);
+    const applicantsPerPage = 5;
 
     const [applicants, setApplicants] = useState([]);
+    const navigate = useNavigate();
 
     const [jobTitle, setJobTitle] = useState("");
+    const [matches, setMatches] = useState([]);
 
     useEffect(() => {
         fetchApplicants();
+        fetchMatches();
     }, []);
 
     const fetchApplicants = async () => {
@@ -37,6 +45,36 @@ function Applicants() {
 
         } finally {
             setLoading(false);
+        }
+    };
+
+    const fetchMatches = async () => {
+        try {
+
+            console.log("Job ID:", jobId);
+            console.log("Token:", localStorage.getItem("access"));
+
+            const response = await api.get(
+                `/ai/job/${jobId}/matches/`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem("access")}`,
+                    },
+                }
+            );
+
+            console.log(response.data);
+
+            setMatches(response.data.results);
+
+        } catch (error) {
+            console.log(error.response);
+
+            console.log(error.response?.status);
+
+            console.log(error.response?.data);
+
+            console.log(error.config.url);
         }
     };
 
@@ -67,6 +105,32 @@ function Applicants() {
         }
         };
 
+    const filteredApplicants = applicants.filter((applicant) => {
+        const keyword = search.toLowerCase();
+
+        const matchesSearch =
+            applicant.candidate_name.toLowerCase().includes(keyword) ||
+            applicant.candidate_email.toLowerCase().includes(keyword);
+
+        const matchesStatus =
+            statusFilter === "" ||
+            applicant.status === statusFilter;
+
+        return matchesSearch && matchesStatus;
+    });
+
+    const indexOfLastApplicant = currentPage * applicantsPerPage;
+    const indexOfFirstApplicant = indexOfLastApplicant - applicantsPerPage;
+
+    const currentApplicants = filteredApplicants.slice(
+        indexOfFirstApplicant,
+        indexOfLastApplicant
+    );
+
+    const totalPages = Math.ceil(
+        filteredApplicants.length / applicantsPerPage
+    );
+
     if (loading) {
         return (
             <div className="min-h-screen flex items-center justify-center">
@@ -93,6 +157,37 @@ function Applicants() {
             <p className="text-gray-500 mt-2">
                 Job: <span className="font-semibold">{jobTitle}</span>
             </p>
+
+            <div className="mt-6 mb-4 flex justify-between items-center">
+
+                <input
+                    type="text"
+                    placeholder="Search by candidate name or email..."
+                    value={search}
+                    onChange={(e) => {
+                        setSearch(e.target.value);
+                        setCurrentPage(1);
+                    }}
+                    className="w-96 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+
+                <select
+                    value={statusFilter}
+                    onChange={(e) => {
+                        setStatusFilter(e.target.value);
+                        setCurrentPage(1);
+                    }}
+                    className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                    <option value="">All Status</option>
+                    <option value="APPLIED">Applied</option>
+                    <option value="UNDER_REVIEW">Under Review</option>
+                    <option value="SHORTLISTED">Shortlisted</option>
+                    <option value="REJECTED">Rejected</option>
+                    <option value="HIRED">Hired</option>
+                </select>
+
+            </div>
 
             <div className="mt-8 bg-white rounded-xl shadow overflow-hidden">
 
@@ -128,7 +223,7 @@ function Applicants() {
 
                 <tbody>
 
-                    {applicants.length === 0 ? (
+                    {filteredApplicants.length === 0 ? (
 
                     <tr>
 
@@ -143,7 +238,7 @@ function Applicants() {
 
                     ) : (
 
-                    applicants.map((applicant) => (
+                    currentApplicants.map((applicant) => (
 
                         <tr
                         key={applicant.id}
@@ -193,6 +288,15 @@ function Applicants() {
                             </button>
 
                             <button
+                                onClick={() =>
+                                    navigate(`/recruiter/application/${applicant.id}`)
+                                }
+                                className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg"
+                            >
+                                Details
+                            </button>
+
+                            <button
                                 onClick={() => updateStatus(applicant.id, "SHORTLISTED")}
                                 className="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg"
                                 >
@@ -226,6 +330,30 @@ function Applicants() {
                 </tbody>
 
                 </table>
+
+                <div className="flex justify-between items-center px-6 py-4 border-t">
+
+                    <button
+                        onClick={() => setCurrentPage(currentPage - 1)}
+                        disabled={currentPage === 1}
+                        className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
+                    >
+                        Previous
+                    </button>
+
+                    <span className="font-medium">
+                        Page {currentPage} of {totalPages || 1}
+                    </span>
+
+                    <button
+                        onClick={() => setCurrentPage(currentPage + 1)}
+                        disabled={currentPage === totalPages || totalPages === 0}
+                        className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
+                    >
+                        Next
+                    </button>
+
+                </div>
 
             </div>
 
