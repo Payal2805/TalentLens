@@ -1,10 +1,33 @@
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { User, Bell, LogOut } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
+import api from "../../services/api";
 
 function Navbar() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+
+  const [profile, setProfile] = useState(null);
+
+  useEffect(() => {
+    fetchProfile();
+  }, []);
+
+  const fetchProfile = async () => {
+    try {
+      const response = await api.get("/candidates/profile/", {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("access")}`,
+        },
+      });
+
+      setProfile(response.data);
+
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   const handleLogout = () => {
     logout();
@@ -41,9 +64,18 @@ function Navbar() {
 
         <button
           onClick={() => navigate("/candidate/profile")}
-          className="flex items-center gap-2 border border-gray-300 hover:bg-gray-100 px-4 py-2 rounded-lg transition"
+          className="flex items-center gap-3 border border-gray-300 hover:bg-gray-100 px-4 py-2 rounded-lg transition"
         >
-          <User size={18} />
+          {profile?.profile_photo ? (
+            <img
+              src={`http://127.0.0.1:8000${profile.profile_photo}`}
+              alt="Profile"
+              className="w-8 h-8 rounded-full object-cover"
+            />
+          ) : (
+            <User size={18} />
+          )}
+
           <span>My Profile</span>
         </button>
 

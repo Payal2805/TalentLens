@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { LogOut, User } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../hooks/useAuth";
 import api from "../../services/api";
 
 function RecruiterNavbar() {
   const navigate = useNavigate();
+  const { logout } = useAuth();
 
   const [profile, setProfile] = useState(null);
 
@@ -20,7 +22,6 @@ function RecruiterNavbar() {
         },
       });
 
-      console.log(response.data);
 
       setProfile(response.data);
     } catch (error) {
@@ -29,9 +30,7 @@ function RecruiterNavbar() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("access");
-    localStorage.removeItem("refresh");
-
+    logout();
     navigate("/login", { replace: true });
   };
 
@@ -67,9 +66,18 @@ function RecruiterNavbar() {
 
         <button
           onClick={() => navigate("/recruiter/profile")}
-          className="flex items-center gap-2 border border-gray-300 hover:bg-gray-100 px-4 py-2 rounded-lg transition"
+          className="flex items-center gap-3 border border-gray-300 hover:bg-gray-100 px-4 py-2 rounded-lg transition"
         >
-          <User size={18} />
+          {profile?.company_logo ? (
+            <img
+              src={`http://127.0.0.1:8000${profile.company_logo}`}
+              alt="Company Logo"
+              className="w-8 h-8 rounded-full object-cover"
+            />
+          ) : (
+            <User size={18} />
+          )}
+
           <span>My Profile</span>
         </button>
 
