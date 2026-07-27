@@ -582,6 +582,7 @@ class RecruiterApplicantDetailView(APIView):
 
         return Response({
             "application_id": application.id, # type: ignore
+            "job_id": application.job.id, # type: ignore
             "status": application.status,
             "applied_at": application.applied_at,
 

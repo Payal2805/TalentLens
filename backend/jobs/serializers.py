@@ -47,6 +47,11 @@ class ApplicationSerializer(serializers.ModelSerializer):
         ]
         
 class RecruiterApplicationSerializer(serializers.ModelSerializer):
+    
+    candidate_id = serializers.IntegerField(
+        source="candidate.id",
+        read_only=True
+    )
 
     candidate_name = serializers.CharField(
         source="candidate.user.username",
@@ -72,6 +77,7 @@ class RecruiterApplicationSerializer(serializers.ModelSerializer):
         model = Application
         fields = [
             "id",
+            "candidate_id",
             "candidate_name",
             "candidate_email",
             "resume",

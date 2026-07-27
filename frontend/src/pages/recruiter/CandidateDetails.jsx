@@ -9,6 +9,7 @@ function CandidateDetails() {
 
     const [loading, setLoading] = useState(true);
     const [data, setData] = useState(null);
+    const [aiResult, setAiResult] = useState(null);
 
     useEffect(() => {
         fetchDetails();
@@ -25,14 +26,45 @@ function CandidateDetails() {
                 }
             );
 
+            console.log(JSON.stringify(response.data, null, 2));
+
             setData(response.data);
+            fetchAIResult(
+                response.data.job_id,
+                response.data.candidate.id
+            );
+
         } catch (error) {
             console.error(error);
-            alert("Failed to load candidate details.");
         } finally {
             setLoading(false);
         }
     };
+
+    const fetchAIResult = async (jobId, candidateId) => {
+        try {
+            const response = await api.get(
+                `/ai/job/${jobId}/matches/`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem("access")}`,
+                    },
+                }
+            );
+
+            const candidateAI = response.data.results.find(
+                (item) => item.candidate_id === candidateId
+            );
+
+            console.log(JSON.stringify(candidateAI, null, 2));
+
+            setAiResult(candidateAI);
+
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
 
     if (loading) {
         return (
@@ -209,6 +241,46 @@ function CandidateDetails() {
                                     View Resume
                                 </button>
                             </div>
+
+                            {aiResult && (
+                                <div className="col-span-2 mt-8 border-t pt-6">
+
+                                    <h2 className="text-2xl font-bold mb-4 text-blue-700">
+                                        AI Resume Analysis
+                                    </h2>
+
+                                    <div className="grid grid-cols-2 gap-4">
+
+                                        <div>
+                                            <p className="font-semibold">Overall Score</p>
+                                            <p>{aiResult.overall_score}%</p>
+                                        </div>
+
+                                        <div>
+                                            <p className="font-semibold">Rank</p>
+                                            <p>#{aiResult.rank}</p>
+                                        </div>
+
+                                        <div>
+                                            <p className="font-semibold">Skill Score</p>
+                                            <p>{aiResult.skill_score}%</p>
+                                        </div>
+
+                                        <div>
+                                            <p className="font-semibold">Experience Score</p>
+                                            <p>{aiResult.experience_score}%</p>
+                                        </div>
+
+                                        <div>
+                                            <p className="font-semibold">Status</p>
+                                            <p>{aiResult.application_status}</p>
+                                        </div>
+
+
+                                    </div>
+
+                                </div>
+                            )}
 
                         </div>
 

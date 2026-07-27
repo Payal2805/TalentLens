@@ -37,6 +37,8 @@ function Applicants() {
                 }
             );
 
+            console.log("Applicants:", response.data.applications);
+
             setApplicants(response.data.applications);
             setJobTitle(response.data.job);
 
@@ -63,7 +65,7 @@ function Applicants() {
                 }
             );
 
-            console.log(response.data);
+            console.log("Matches:", response.data.results);
 
             setMatches(response.data.results);
 
@@ -130,6 +132,12 @@ function Applicants() {
     const totalPages = Math.ceil(
         filteredApplicants.length / applicantsPerPage
     );
+
+    const getMatchData = (candidateId) => {
+        return matches.find(
+            (match) => match.candidate_id === candidateId
+        );
+    };
 
     if (loading) {
         return (
@@ -206,6 +214,14 @@ function Applicants() {
                     </th>
 
                     <th className="text-center px-6 py-4">
+                        AI Score
+                    </th>
+
+                    <th className="text-center px-6 py-4">
+                        Rank
+                    </th>
+
+                    <th className="text-center px-6 py-4">
                         Status
                     </th>
 
@@ -238,7 +254,14 @@ function Applicants() {
 
                     ) : (
 
-                    currentApplicants.map((applicant) => (
+                    currentApplicants.map((applicant) => {
+                        const match = getMatchData(applicant.candidate_id);
+                        console.log("Applicant Candidate ID:", applicant.candidate_id);
+                        console.log("Matched AI:", match);
+
+                        console.log("Applicant:", applicant);
+                        console.log("Match:", match);
+                        return (
 
                         <tr
                         key={applicant.id}
@@ -251,6 +274,14 @@ function Applicants() {
 
                         <td className="px-6 py-4">
                             {applicant.candidate_email}
+                        </td>
+
+                        <td className="px-6 py-4 text-center">
+                            {match ? `${match.overall_score}%` : "-"}
+                        </td>
+
+                        <td className="px-6 py-4 text-center">
+                            {match ? `#${match.rank}` : "-"}
                         </td>
 
                         <td className="px-6 py-4 text-center">
@@ -323,7 +354,8 @@ function Applicants() {
 
                         </tr>
 
-                    ))
+                    );
+                })
 
                     )}
 
