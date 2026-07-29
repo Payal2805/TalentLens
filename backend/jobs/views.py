@@ -3,10 +3,12 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from django.db.models import Q
+from django.core.mail import send_mail
+from django.conf import settings
 
 from .pagination import JobPagination
-from .models import Job, Application
-from .serializers import JobSerializer, ApplicationSerializer, RecruiterApplicationSerializer, ApplicationStatusSerializer
+from .models import Job, Application, Interview
+from .serializers import JobSerializer, ApplicationSerializer, RecruiterApplicationSerializer, ApplicationStatusSerializer, InterviewSerializer
 from notifications.services import create_notification
 from django.utils import timezone
 
@@ -606,4 +608,118 @@ class RecruiterApplicantDetailView(APIView):
                 "file": application.resume.resume_file.url,
             }
         })
-        
+
+
+class ScheduleInterviewAPIView(APIView):
+
+    permission_classes = [IsAuthenticated, IsRecruiter]
+
+    def post(self, request):
+
+        application_id = request.data.get("application")
+
+        try:
+            application = Application.objects.get(id=application_id)
+
+        except Application.DoesNotExist:
+            return Response(
+                {"error": "Application not found"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        serializer = InterviewSerializer(data=request.data)
+
+        if serializer.is_valid():
+
+            interview: Interview = serializer.save()  # type: ignore
+
+            candidate = application.candidate.user
+            job = application.job
+
+            # -------------------------
+            # Format Date & Time
+            # -------------------------
+
+            interview_date = interview.interview_date.strftime("%d %B %Y")
+            interview_time = interview.interview_time.strftime("%I:%M %p")
+
+            # -------------------------
+            # Email Message
+            # -------------------------
+
+            message = f"""
+Hello {candidate.get_full_name() or candidate.username},
+
+Congratulations!
+
+Your interview has been scheduled.
+
+Job Title: {job.title}
+
+Interview Date: {interview_date}
+
+Interview Time: {interview_time}
+
+Interview Mode: {interview.interview_mode}
+"""
+
+            # Online Interview
+            if interview.interview_mode == "ONLINE":
+
+                message += f"""
+
+Meeting Link:
+{interview.meeting_link}
+"""
+
+            # Offline Interview
+            else:
+
+                message += """
+
+Interview Location:
+Company Office
+"""
+
+            # Notes (Optional)
+            if interview.notes:
+
+                message += f"""
+
+Interview Notes:
+{interview.notes}
+"""
+
+            # Closing
+            message += """
+
+Best of Luck!
+
+Recruitment Team
+"""
+
+            # -------------------------
+            # Send Email
+            # -------------------------
+
+            send_mail(
+                subject="Interview Scheduled",
+                message=message,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[candidate.email],
+                fail_silently=False,
+            )
+
+            return Response(
+                {
+                    "message": "Interview scheduled successfully.",
+                    "data": serializer.data,
+                },
+                status=status.HTTP_201_CREATED,
+            )
+
+        return Response(
+            serializer.errors,
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+                     

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Job, Application
+from .models import Job, Application, Interview
 
 
 class JobSerializer(serializers.ModelSerializer):
@@ -93,4 +93,9 @@ class ApplicationStatusSerializer(serializers.ModelSerializer):
         model = Application
         fields = ["status"]
         
-        
+class InterviewSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Interview
+        fields = "__all__"
+       
