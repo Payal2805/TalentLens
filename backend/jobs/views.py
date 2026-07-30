@@ -10,7 +10,7 @@ from django.http import HttpResponse
 
 from .pagination import JobPagination
 from .models import Job, Application, Interview
-from .serializers import JobSerializer, ApplicationSerializer, RecruiterApplicationSerializer, ApplicationStatusSerializer, InterviewSerializer, RecruiterInterviewSerializer, InterviewStatusSerializer
+from .serializers import JobSerializer, ApplicationSerializer, RecruiterApplicationSerializer, ApplicationStatusSerializer, InterviewSerializer, RecruiterInterviewSerializer, InterviewStatusSerializer, CandidateInterviewSerializer
 from notifications.services import create_notification
 from django.utils import timezone
 
@@ -860,3 +860,33 @@ class UpdateInterviewStatusAPIView(APIView):
             status=status.HTTP_400_BAD_REQUEST
         )
         
+class CandidateInterviewListAPIView(APIView):
+
+    permission_classes = [IsAuthenticated, IsCandidate]
+
+    def get(self, request):
+
+        try:
+            candidate = CandidateProfile.objects.get(user=request.user)
+
+        except CandidateProfile.DoesNotExist:
+
+            return Response(
+                {"message": "Candidate profile not found."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        interviews = Interview.objects.filter(
+            application__candidate=candidate
+        ).select_related(
+            "application__job",
+            "application__job__recruiter"
+        ).order_by("-interview_date", "-interview_time")
+
+        serializer = CandidateInterviewSerializer(
+            interviews,
+            many=True
+        )
+
+        return Response(serializer.data)
+    

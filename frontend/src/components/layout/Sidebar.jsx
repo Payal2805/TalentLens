@@ -5,6 +5,7 @@ import {
   Briefcase,
   ClipboardList,
   Bell,
+  CalendarDays,
 } from "lucide-react";
 
 const menuItems = [
@@ -27,6 +28,11 @@ const menuItems = [
     name: "My Applications",
     path: "/candidate/my-applications",
     icon: ClipboardList,
+  },
+  {
+    name: "My Interviews",
+    path: "/candidate/interviews",
+    icon: CalendarDays,
   },
   {
     name: "Notifications",

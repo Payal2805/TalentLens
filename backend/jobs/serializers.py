@@ -136,3 +136,31 @@ class InterviewStatusSerializer(serializers.ModelSerializer):
         model = Interview
         fields = ["status"]
         
+class CandidateInterviewSerializer(serializers.ModelSerializer):
+
+    job_title = serializers.CharField(
+        source="application.job.title",
+        read_only=True
+    )
+
+    recruiter = serializers.CharField(
+        source="application.job.recruiter.company_name",
+        read_only=True
+    )
+
+    class Meta:
+
+        model = Interview
+
+        fields = [
+            "id",
+            "job_title",
+            "recruiter",
+            "interview_date",
+            "interview_time",
+            "interview_mode",
+            "meeting_link",
+            "notes",
+            "status",
+        ]
+        
