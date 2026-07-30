@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import ApplyJobView, JobView, MyApplicationsView, RecruiterApplicantsView, RecruiterJobsView, UpdateApplicationStatusView, RecruiterApplicantDetailView,ScheduleInterviewAPIView
+from .views import ApplyJobView, JobView, MyApplicationsView, RecruiterApplicantsView, RecruiterJobsView, UpdateApplicationStatusView, RecruiterApplicantDetailView,ScheduleInterviewAPIView, RecruiterInterviewListAPIView, ExportInterviewCSVAPIView, UpdateInterviewStatusAPIView
 
 urlpatterns = [
 
@@ -12,4 +12,7 @@ urlpatterns = [
     path("applications/<int:application_id>/status/", UpdateApplicationStatusView.as_view(), name="update-application-status"),
     path("applications/<int:application_id>/",RecruiterApplicantDetailView.as_view(),name="recruiter-application-detail"),
     path("interviews/schedule/",ScheduleInterviewAPIView.as_view()),
+    path("recruiter/interviews/", RecruiterInterviewListAPIView.as_view(),name="recruiter-interviews"),
+    path("recruiter/interviews/export/", ExportInterviewCSVAPIView.as_view(), name="export-interviews-csv"),
+    path("interviews/<int:interview_id>/status/", UpdateInterviewStatusAPIView.as_view()),
 ]

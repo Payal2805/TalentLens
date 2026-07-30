@@ -5,10 +5,12 @@ from rest_framework.permissions import IsAuthenticated
 from django.db.models import Q
 from django.core.mail import send_mail
 from django.conf import settings
+import csv
+from django.http import HttpResponse
 
 from .pagination import JobPagination
 from .models import Job, Application, Interview
-from .serializers import JobSerializer, ApplicationSerializer, RecruiterApplicationSerializer, ApplicationStatusSerializer, InterviewSerializer
+from .serializers import JobSerializer, ApplicationSerializer, RecruiterApplicationSerializer, ApplicationStatusSerializer, InterviewSerializer, RecruiterInterviewSerializer, InterviewStatusSerializer
 from notifications.services import create_notification
 from django.utils import timezone
 
@@ -722,4 +724,139 @@ Recruitment Team
             serializer.errors,
             status=status.HTTP_400_BAD_REQUEST,
         )
-                     
+    
+class RecruiterInterviewListAPIView(APIView):
+
+    permission_classes = [IsAuthenticated, IsRecruiter]
+
+    def get(self, request):
+
+        try:
+            recruiter = RecruiterProfile.objects.get(user=request.user)
+
+        except RecruiterProfile.DoesNotExist:
+            return Response(
+                {"message": "Recruiter profile not found."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        interviews = Interview.objects.filter(
+            application__job__recruiter=recruiter
+        ).select_related(
+            "application__candidate__user",
+            "application__job"
+        ).order_by("-interview_date", "-interview_time")
+
+        serializer = RecruiterInterviewSerializer(
+            interviews,
+            many=True
+        )
+
+        return Response(serializer.data)    
+                 
+class ExportInterviewCSVAPIView(APIView):
+
+    permission_classes = [IsAuthenticated, IsRecruiter]
+
+    def get(self, request):
+
+        try:
+            recruiter = RecruiterProfile.objects.get(user=request.user)
+        except RecruiterProfile.DoesNotExist:
+            return Response(
+                {"message": "Recruiter not found"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        interviews = Interview.objects.filter(
+            application__job__recruiter=recruiter
+        ).select_related(
+            "application__candidate__user",
+            "application__job"
+        )
+
+        response = HttpResponse(content_type="text/csv")
+        response["Content-Disposition"] = 'attachment; filename="interviews.csv"'
+
+        writer = csv.writer(response)
+
+        writer.writerow([
+            "Candidate",
+            "Email",
+            "Job",
+            "Date",
+            "Time",
+            "Mode",
+            "Status"
+        ])
+
+        for interview in interviews:
+            writer.writerow([
+                interview.application.candidate.user.get_full_name()
+                or interview.application.candidate.user.username,
+                interview.application.candidate.user.email,
+                interview.application.job.title,
+                interview.interview_date,
+                interview.interview_time,
+                interview.interview_mode,
+                interview.status,
+            ])
+
+        return response
+    
+class UpdateInterviewStatusAPIView(APIView):
+
+    permission_classes = [IsAuthenticated, IsRecruiter]
+
+    def patch(self, request, interview_id):
+
+        try:
+            recruiter = RecruiterProfile.objects.get(user=request.user)
+
+        except RecruiterProfile.DoesNotExist:
+            return Response(
+                {"message": "Recruiter profile not found."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        try:
+            interview = Interview.objects.get(
+                id=interview_id,
+                application__job__recruiter=recruiter
+            )
+
+        except Interview.DoesNotExist:
+            return Response(
+                {"message": "Interview not found."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        serializer = InterviewStatusSerializer(
+            interview,
+            data=request.data,
+            partial=True
+        )
+
+        if serializer.is_valid():
+
+            serializer.save()
+
+            create_notification(
+                recipient=interview.application.candidate.user,
+                title="Interview Status Updated",
+                message=f"Your interview for '{interview.application.job.title}' is now {interview.status}.",
+                notification_type="INTERVIEW"
+            )
+
+            return Response(
+                {
+                    "message": "Interview status updated successfully.",
+                    "data": serializer.data
+                }
+            )
+
+        return Response(
+            serializer.errors,
+            status=status.HTTP_400_BAD_REQUEST
+        )
+        

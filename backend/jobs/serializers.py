@@ -99,3 +99,40 @@ class InterviewSerializer(serializers.ModelSerializer):
         model = Interview
         fields = "__all__"
        
+class RecruiterInterviewSerializer(serializers.ModelSerializer):
+
+    candidate_name = serializers.CharField(
+        source="application.candidate.user.get_full_name",
+        read_only=True
+    )
+
+    candidate_email = serializers.EmailField(
+        source="application.candidate.user.email",
+        read_only=True
+    )
+
+    job_title = serializers.CharField(
+        source="application.job.title",
+        read_only=True
+    )
+
+    class Meta:
+        model = Interview
+        fields = [
+            "id",
+            "candidate_name",
+            "candidate_email",
+            "job_title",
+            "interview_date",
+            "interview_time",
+            "interview_mode",
+            "meeting_link",
+            "status",
+        ]
+        
+class InterviewStatusSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Interview
+        fields = ["status"]
+        

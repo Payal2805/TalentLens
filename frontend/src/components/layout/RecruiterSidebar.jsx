@@ -5,6 +5,7 @@ import {
   PlusCircle,
   Users,
   Bell,
+  CalendarDays,
 } from "lucide-react";
 
 const menuItems = [
@@ -22,6 +23,12 @@ const menuItems = [
     name: "My Jobs",
     path: "/recruiter/my-jobs",
     icon: Briefcase,
+  },
+
+  {
+    name: "Interview List",
+    path: "/recruiter/interviews",
+    icon: CalendarDays,
   },
 
   {
