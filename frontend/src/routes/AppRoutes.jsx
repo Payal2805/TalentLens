@@ -26,6 +26,12 @@ import RecruiterProfile from "../pages/recruiter/RecruiterProfile";
 import RecruiterInterviewList from "../pages/recruiter/RecruiterInterviewList";
 
 import AdminDashboard from "../pages/admin/AdminDashboard";
+import AdminUsers from "../pages/admin/AdminUsers";
+import AdminJobs from "../pages/admin/AdminJobs";
+import AdminCandidates from "../pages/admin/AdminCandidates";
+import AdminRecruiters from "../pages/admin/AdminRecruiters";
+import AdminApplications from "../pages/admin/AdminApplications";
+import AdminSettings from "../pages/admin/AdminSettings";
 
 function Home() {
   return <h2>Home Page</h2>;
@@ -80,6 +86,60 @@ export default function AppRoutes() {
         element={
           <ProtectedRoute allowedRoles={["ADMIN"]}>
             <AdminDashboard />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/admin/users"
+        element={
+          <ProtectedRoute allowedRoles={["ADMIN"]}>
+            <AdminUsers />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/admin/jobs"
+        element={
+          <ProtectedRoute allowedRoles={["ADMIN"]}>
+            <AdminJobs />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/admin/candidates"
+        element={
+          <ProtectedRoute allowedRoles={["ADMIN"]}>
+            <AdminCandidates />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/admin/recruiters"
+        element={
+          <ProtectedRoute allowedRoles={["ADMIN"]}>
+            <AdminRecruiters />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/admin/applications"
+        element={
+          <ProtectedRoute allowedRoles={["ADMIN"]}>
+            <AdminApplications />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/admin/settings"
+        element={
+          <ProtectedRoute allowedRoles={["ADMIN"]}>
+            <AdminSettings />
           </ProtectedRoute>
         }
       />

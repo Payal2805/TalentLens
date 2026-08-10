@@ -8,21 +8,56 @@ export function AuthProvider({ children }) {
 
     const storedUser = localStorage.getItem("user");
 
-    return storedUser ? JSON.parse(storedUser) : null;
-
+    return storedUser
+      ? JSON.parse(storedUser)
+      : null;
   });
 
-  const login = (userData, accessToken, refreshToken) => {
+  // =========================================================
+  // Login
+  // =========================================================
 
-    localStorage.setItem("user", JSON.stringify(userData));
+  const login = (
+    userData,
+    accessToken,
+    refreshToken
+  ) => {
 
-    localStorage.setItem("access", accessToken);
+    localStorage.setItem(
+      "user",
+      JSON.stringify(userData)
+    );
 
-    localStorage.setItem("refresh", refreshToken);
+    localStorage.setItem(
+      "access",
+      accessToken
+    );
+
+    localStorage.setItem(
+      "refresh",
+      refreshToken
+    );
 
     setUser(userData);
-
   };
+
+  // =========================================================
+  // Update Logged-in User
+  // =========================================================
+
+  const updateUser = (updatedUser) => {
+
+    localStorage.setItem(
+      "user",
+      JSON.stringify(updatedUser)
+    );
+
+    setUser(updatedUser);
+  };
+
+  // =========================================================
+  // Logout
+  // =========================================================
 
   const logout = () => {
 
@@ -33,23 +68,18 @@ export function AuthProvider({ children }) {
     localStorage.removeItem("refresh");
 
     setUser(null);
-
   };
 
   return (
-
     <AuthContext.Provider
       value={{
         user,
         login,
+        updateUser,
         logout,
       }}
     >
-
       {children}
-
     </AuthContext.Provider>
-
   );
-
 }

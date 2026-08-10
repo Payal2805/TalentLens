@@ -29,6 +29,7 @@ urlpatterns = [
     path("api/jobs/", include("jobs.urls")),
     path("api/ai/", include("ai_engine.urls")),
     path("api/notifications/", include("notifications.urls")),
+    path("api/admin/", include("admins.urls")),
 ]
 
 if settings.DEBUG:
