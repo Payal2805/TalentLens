@@ -41,9 +41,6 @@ function CandidateProfile() {
         },
       });
 
-      console.log("Profile Response:", response);
-      console.log("Profile Data:", response.data);
-
       setUserInfo({
         full_name: response.data.full_name || "",
         username: response.data.username || "",

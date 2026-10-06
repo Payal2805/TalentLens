@@ -1,6 +1,8 @@
 from django.contrib.auth import authenticate
 from rest_framework import serializers
 from .models import User
+from candidates.models import CandidateProfile
+from recruiters.models import RecruiterProfile
 
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -46,7 +48,6 @@ class RegisterSerializer(serializers.ModelSerializer):
         return attrs
 
     def create(self, validated_data):
-
         validated_data.pop("confirm_password")
 
         user = User.objects.create_user(
@@ -57,6 +58,18 @@ class RegisterSerializer(serializers.ModelSerializer):
             password=validated_data["password"],
             role=validated_data["role"],
         )
+
+        if user.role == "CANDIDATE":
+
+            CandidateProfile.objects.create(
+                user=user,
+                phone_number=""
+            )
+        
+        if user.role == "RECRUITER":
+            RecruiterProfile.objects.create(
+                user=user
+            )
 
         return user
     

@@ -34,7 +34,6 @@ function CandidateDetails() {
                 }
             );
 
-            console.log(JSON.stringify(response.data, null, 2));
 
             setData(response.data);
             fetchAIResult(
@@ -64,7 +63,6 @@ function CandidateDetails() {
                 (item) => item.candidate_id === candidateId
             );
 
-            console.log(JSON.stringify(candidateAI, null, 2));
 
             setAiResult(candidateAI);
 
@@ -131,8 +129,7 @@ function CandidateDetails() {
             });
 
         } catch (error) {
-            console.log(error.response);
-            console.log(error.response?.data);
+            console.error(error);
         }
     };
 
@@ -468,7 +465,6 @@ function CandidateDetails() {
 
                                 <button
                                     onClick={() => {
-                                        console.log("Button clicked");
                                         setShowInterviewModal(true);
                                     }}
                                     className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg"

@@ -10,6 +10,7 @@ from ai_engine.models import ParsedResume
 from .serializers import CandidateProfileSerializer, ResumeSerializer
 
 from accounts.permissions import IsCandidate
+from ai_engine.services.resume_parser import parse_resume
 
 class CandidateProfileView(APIView):
 
@@ -96,10 +97,49 @@ class ResumeUploadView(APIView):
         serializer = ResumeSerializer(data=request.data)
 
         if serializer.is_valid():
-            serializer.save(candidate=candidate)
+            resume = serializer.save(
+                candidate=candidate
+            )
+
+            try:
+
+                parsed_resume = parse_resume(
+                    resume
+                )
+
+            except Exception as e:
+
+                print(
+                    "Resume AI parsing error:",
+                    str(e)
+                )
+
+                return Response(
+                    {
+                        "message": "Resume uploaded, but AI parsing failed.",
+                        "resume_id": resume.id, # type: ignore
+                        "error": str(e),
+                    },
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
 
             return Response(
-                serializer.data,
+                {
+                    "message": "Resume uploaded and analyzed successfully.",
+
+                    "resume": {
+                        "id": resume.id, # type: ignore
+                        "title": resume.resume_title, # type: ignore
+                    },
+
+                    "parsed_resume": {
+                    "id": parsed_resume.id, # type: ignore
+                    "skills": parsed_resume.skills,
+                    "education": parsed_resume.education,
+                    "experience": parsed_resume.experience,
+                    "parsed_at": parsed_resume.parsed_at,
+                    }
+                },
                 status=status.HTTP_201_CREATED
             )
 

@@ -25,9 +25,6 @@ function CandidateDashboard() {
       } catch (error) {
         console.error("Dashboard Error:", error);
 
-        if (error.response) {
-          console.log(error.response.data);
-        }
       } finally {
         setLoading(false);
       }

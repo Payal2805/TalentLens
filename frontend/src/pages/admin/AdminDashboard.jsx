@@ -63,8 +63,6 @@ function AdminDashboard() {
         },
       });
 
-      console.log("Dashboard API Response:", response.data);
-
       setDashboardData(response.data);
     } catch (error) {
       console.error("Admin Dashboard Error:", error);

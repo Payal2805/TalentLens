@@ -1,6 +1,6 @@
 import Sidebar from "../../components/layout/Sidebar";
 import Navbar from "../../components/layout/Navbar";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import api from "../../services/api";
 import axios from "axios";
 import {
@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 
 function Resume() {
+    const fileInputRef = useRef(null);
     const [resumeTitle, setResumeTitle] = useState("");
     const [selectedFile, setSelectedFile] = useState(null);
     const [resumes, setResumes] = useState([]);
@@ -70,35 +71,46 @@ function Resume() {
             formData.append("resume_title", resumeTitle);
             formData.append("resume_file", selectedFile);
 
-            await api.post("/candidates/resume/upload/", formData, {
-            headers: {
-                Authorization: `Bearer ${localStorage.getItem("access")}`,
-                "Content-Type": "multipart/form-data",
-            },
-            });
+            const response = await api.post(
+                "/candidates/resume/upload/",
+                formData,
+                {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem("access")}`,
+                        "Content-Type": "multipart/form-data",
+                    },
+                }
+            );
 
-            alert("Resume uploaded successfully!");
+            alert("Resume uploaded and AI analyzed successfully!");
 
             setResumeTitle("");
             setSelectedFile(null);
 
+            if (fileInputRef.current) {
+                fileInputRef.current.value = "";
+            }
+
             await fetchResumes();
 
-            document.getElementById("resumeFile").value = "";
-
         } catch (error) {
-            console.error(error);
+            console.error("Resume Upload Error:", error);
 
             if (error.response) {
-            alert(JSON.stringify(error.response.data));
+                
+
+                alert(
+                    error.response.data?.message ||
+                    "Resume upload/AI analysis failed."
+                );
             } else {
-            alert("Upload failed.");
+                alert("Upload failed.");
             }
 
         } finally {
             setLoading(false);
         }
-        };
+    };
 
         const handleDelete = async (id) => {
         if (!window.confirm("Delete this resume?")) return;
@@ -242,7 +254,7 @@ function Resume() {
                 </label>
 
                 <input
-                    id="resumeFile"
+                    ref={fileInputRef}
                     type="file"
                     accept=".pdf"
                     onChange={(e) => setSelectedFile(e.target.files[0])}

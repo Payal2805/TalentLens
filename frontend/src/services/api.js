@@ -14,16 +14,20 @@ const api = axios.create({
 
 api.interceptors.request.use(
   (config) => {
-    const accessToken =
-      localStorage.getItem("access");
+    // Login request ला जुना access token attach करू नका
+    if (config.url === "/accounts/login/") {
+      return config;
+    }
+
+    const accessToken = localStorage.getItem("access");
 
     if (accessToken) {
-      config.headers.Authorization =
-        `Bearer ${accessToken}`;
+      config.headers.Authorization = `Bearer ${accessToken}`;
     }
 
     return config;
   },
+
   (error) => {
     return Promise.reject(error);
   }
@@ -31,17 +35,25 @@ api.interceptors.request.use(
 
 // =========================================================
 // RESPONSE INTERCEPTOR
-// Handle unauthorized requests
+// Handle API errors
 // =========================================================
 
 api.interceptors.response.use(
   (response) => {
     return response;
   },
+
   (error) => {
-    if (error.response?.status === 401) {
-      console.warn(
-        "Unauthorized request. Access token may be expired."
+    if (error.response) {
+      console.error(
+        "API Error:",
+        error.response.status,
+        error.response.data
+      );
+    } else {
+      console.error(
+        "Network Error:",
+        error.message
       );
     }
 

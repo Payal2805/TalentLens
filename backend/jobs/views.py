@@ -18,6 +18,8 @@ from candidates.models import CandidateProfile, Resume
 from recruiters.models import RecruiterProfile
 from accounts.permissions import IsCandidate, IsRecruiter
 
+from ai_engine.services.job_parser import parse_job_description
+from ai_engine.models import ParsedJob
 
 class JobView(APIView):
 
@@ -47,7 +49,48 @@ class JobView(APIView):
 
         if serializer.is_valid():
 
-            serializer.save(recruiter=recruiter)
+            # -------------------------
+            # Step 1: Create Job
+            # -------------------------
+
+            job = serializer.save(recruiter=recruiter)
+
+            # -------------------------
+            # Step 2: Prepare Job Text
+            # -------------------------
+
+            job_text = f"""
+            {job.title}
+
+            {job.description}
+
+            {job.skills_required}
+
+            Experience: {job.experience} Years
+            """
+
+            # -------------------------
+            # Step 3: Parse Job
+            # -------------------------
+
+            parsed_data = parse_job_description(job_text)
+
+            # -------------------------
+            # Step 4: Save Parsed Job
+            # -------------------------
+
+            ParsedJob.objects.update_or_create(
+                job=job,
+                defaults={
+                    "cleaned_text": parsed_data["cleaned_text"],
+                    "skills": parsed_data["skills"],
+                    "experience": parsed_data["experience"],
+                }
+            )
+
+            # -------------------------
+            # Step 5: Response
+            # -------------------------
 
             return Response(
                 {
@@ -57,11 +100,14 @@ class JobView(APIView):
                 status=status.HTTP_201_CREATED
             )
 
+        # -------------------------
+        # Validation Error
+        # -------------------------
+
         return Response(
             serializer.errors,
             status=status.HTTP_400_BAD_REQUEST
         )
-
     # -------------------------
     # Get Jobs
     # -------------------------

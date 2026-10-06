@@ -45,7 +45,7 @@ function RecruiterDashboard() {
             console.error(error);
 
             if (error.response) {
-                console.log(error.response.data);
+                console.error(error);
             }
 
         } finally {

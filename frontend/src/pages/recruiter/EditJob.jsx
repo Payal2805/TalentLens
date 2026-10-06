@@ -35,8 +35,6 @@ function EditJob() {
         },
       });
 
-      console.log(response.data);
-
       setFormData(response.data);
 
     } catch (error) {

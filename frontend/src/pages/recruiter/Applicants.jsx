@@ -37,8 +37,6 @@ function Applicants() {
                 }
             );
 
-            console.log("Applicants:", response.data.applications);
-
             setApplicants(response.data.applications);
             setJobTitle(response.data.job);
 
@@ -53,9 +51,6 @@ function Applicants() {
     const fetchMatches = async () => {
         try {
 
-            console.log("Job ID:", jobId);
-            console.log("Token:", localStorage.getItem("access"));
-
             const response = await api.get(
                 `/ai/job/${jobId}/matches/`,
                 {
@@ -65,18 +60,11 @@ function Applicants() {
                 }
             );
 
-            console.log("Matches:", response.data.results);
 
             setMatches(response.data.results);
 
         } catch (error) {
-            console.log(error.response);
-
-            console.log(error.response?.status);
-
-            console.log(error.response?.data);
-
-            console.log(error.config.url);
+            console.error(error);
         }
     };
 
@@ -256,11 +244,7 @@ function Applicants() {
 
                     currentApplicants.map((applicant) => {
                         const match = getMatchData(applicant.candidate_id);
-                        console.log("Applicant Candidate ID:", applicant.candidate_id);
-                        console.log("Matched AI:", match);
-
-                        console.log("Applicant:", applicant);
-                        console.log("Match:", match);
+                        
                         return (
 
                         <tr
